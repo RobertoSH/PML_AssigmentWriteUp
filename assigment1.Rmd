@@ -1,0 +1,90 @@
+---
+title: "PML Prediction Assignment Writeup"
+author: "Roberto Suárez"
+date: "Friday, July 25, 2014"
+output: html_document
+---
+
+
+
+
+### Exploratory Analysis
+
+We are trying to predict "classe" variable based on all the others contained in training:
+
+```{r,echo=FALSE}
+library(caret)
+
+training<-
+  read.csv('C:/Users/rsuarez/Documents/github/PracticalMachineLearning/pml-training.csv',
+           stringsAsFactors=F)
+testing<-
+  read.csv('C:/Users/rsuarez/Documents/github/PracticalMachineLearning/pml-testing.csv',
+           stringsAsFactors=F)
+```
+```{r}
+str(training)
+```
+
+
+### Preproces 
+
+There are some some variables with so much NA, we are going to put out this variables.
+
+```{r}
+Nas<-
+  sapply(1:dim(training)[2],
+       function(x) sum(is.na(training[,x]))/length(training[,x]))
+
+table(Nas)
+
+training<-
+   training[,Nas==0]
+# training[sort(sample(1:dim(training)[1],size = 5000,replace = F)),Nas==0]
+
+```
+
+We also have to move out firts seven columns because they are olny user features.
+
+```{r}
+training<-
+  training[,-c(1:7)]
+
+```
+
+
+If we pretend make a Random Forest Analysis we have to use only Numeric variables as predictors and a Factor value in the predicted variable.
+
+```{r}
+Numeric<-
+  sapply(1:dim(training)[2],function(x) class(training[,x])!='character')
+
+Numeric[length(Numeric)]<-T
+
+training<-
+  training[,Numeric]
+
+training$classe<-factor(training$classe)
+```
+
+### Model fit
+
+We are not using the Random Forest on caret package (train with 'rf' method) just because time of perfomance, function randomForest on randomForest package is so much faster.
+
+```{r}
+library(randomForest)
+
+modelFitRF <-
+  randomForest(classe~.,training)
+```
+
+
+### Error calculation
+
+As we can this is a very good model fit, its error is only 0.3% approximately and it actually made correct predictions on Submission part of this assigment (20/20).
+
+```{r}
+modelFitRF
+````
+
+
